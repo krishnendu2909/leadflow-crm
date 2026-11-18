@@ -3,7 +3,11 @@ import { google } from "googleapis";
 
 const spreadsheetId = process.env.GOOGLE_SHEETS_ID;
 const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+
+const privateKey = process.env.GOOGLE_PRIVATE_KEY
+  ?.replace(/\\n/g, "\n")
+  .replace(/\r\n/g, "\n")
+  .trim();
 
 if (!spreadsheetId || !email || !privateKey) {
   throw new Error("Google Sheets credentials are missing.");
@@ -12,16 +16,22 @@ if (!spreadsheetId || !email || !privateKey) {
 const auth = new google.auth.JWT({
   email,
   key: privateKey,
-  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+  scopes: [
+    "https://www.googleapis.com/auth/spreadsheets",
+  ],
 });
 
-const sheets = google.sheets({ version: "v4", auth });
+const sheets = google.sheets({
+  version: "v4",
+  auth,
+});
 
 export async function readSheet(range: string) {
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range,
   });
+
   return response.data.values ?? [];
 }
 
@@ -34,7 +44,9 @@ export async function appendRow(
     range: `${sheetName}!A:Z`,
     valueInputOption: "USER_ENTERED",
     insertDataOption: "INSERT_ROWS",
-    requestBody: { values: [values] },
+    requestBody: {
+      values: [values],
+    },
   });
 }
 
@@ -46,16 +58,23 @@ export async function updateRow(
     spreadsheetId,
     range,
     valueInputOption: "USER_ENTERED",
-    requestBody: { values },
+    requestBody: {
+      values,
+    },
   });
 }
 
-export async function deleteRow(sheetName: string, rowNumber: number) {
+export async function deleteRow(
+  sheetName: string,
+  rowNumber: number
+) {
   if (!Number.isInteger(rowNumber) || rowNumber < 2) {
     throw new Error("Invalid row number.");
   }
 
-  const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+  const spreadsheet = await sheets.spreadsheets.get({
+    spreadsheetId,
+  });
 
   const sheet = spreadsheet.data.sheets?.find(
     (item) => item.properties?.title === sheetName
@@ -70,16 +89,18 @@ export async function deleteRow(sheetName: string, rowNumber: number) {
   return sheets.spreadsheets.batchUpdate({
     spreadsheetId,
     requestBody: {
-      requests: [{
-        deleteDimension: {
-          range: {
-            sheetId,
-            dimension: "ROWS",
-            startIndex: rowNumber - 1,
-            endIndex: rowNumber,
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId,
+              dimension: "ROWS",
+              startIndex: rowNumber - 1,
+              endIndex: rowNumber,
+            },
           },
         },
-      }],
+      ],
     },
   });
 }
