@@ -1,7 +1,7 @@
-
 import { z } from "zod";
 
 export const leadSchema = z.object({
+  enquiryId: z.string().trim().min(1, "Enquiry number is required").max(50, "Enquiry number must be 50 characters or fewer"),
   name: z.string().trim().min(2, "Customer name is required"),
   mobile: z.string().trim().regex(/^\d{10}$/, "Enter a valid 10-digit mobile number"),
   address: z.string().trim(),

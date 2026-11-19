@@ -1,6 +1,5 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { randomUUID } from "crypto";
 import { getClassification, normalizeDate } from "@/lib/lead-utils";
 import {
   readSheet,
@@ -119,15 +118,18 @@ export async function POST(request: NextRequest) {
     const data = parsed.data;
     const { leads } = await getSheetData();
 
-const existingIds = new Set(
-  leads.slice(1).map((row) => row[0]).filter(Boolean)
-);
+const id = data.enquiryId.trim();
+    const existingIds = new Set(
+      leads.slice(1).map((row) => String(row[0] || "").trim().toLowerCase()).filter(Boolean)
+    );
 
-let id = "";
+    if (existingIds.has(id.toLowerCase())) {
+      return NextResponse.json(
+        { success: false, message: "This enquiry number already exists. Please enter a unique number." },
+        { status: 409 }
+      );
+    }
 
-do {
-  id = `ENQ-${randomUUID().toUpperCase()}`;
-} while (existingIds.has(id));
     const createdAt = new Date().toISOString();
 
     const response = await appendRow("Leads", [
@@ -202,6 +204,14 @@ export async function PUT(request: NextRequest) {
     }
 
     const data = parsed.data;
+
+    if (data.enquiryId.trim() !== id) {
+      return NextResponse.json(
+        { success: false, message: "Enquiry number cannot be changed after creation." },
+        { status: 400 }
+      );
+    }
+
     const rowNumber = index + 1;
 
     await updateRow(`Leads!A${rowNumber}:N${rowNumber}`, [[

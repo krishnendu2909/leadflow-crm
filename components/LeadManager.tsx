@@ -43,6 +43,7 @@ type Lead = {
 };
 
 type FormData = {
+  enquiryId: string;
   name: string;
   mobile: string;
   address: string;
@@ -66,6 +67,7 @@ const today = () => {
 };
 
 const emptyForm: FormData = {
+  enquiryId: "",
   name: "",
   mobile: "",
   address: "",
@@ -155,6 +157,7 @@ const [dateTo, setDateTo] = useState("");
     setEditingId(lead.id);
 
     setForm({
+      enquiryId: lead.id,
       name: lead.name,
       mobile: lead.mobile,
       address: lead.address,
@@ -922,6 +925,23 @@ async function exportToExcel() {
                 </h3>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                  <label className="text-sm font-medium sm:col-span-2">
+                    Enquiry Number *
+                    <input
+                      required
+                      minLength={1}
+                      maxLength={50}
+                      className={inputClass}
+                      value={form.enquiryId}
+                      onChange={(e) => changeField("enquiryId", e.target.value)}
+                      placeholder="Enter enquiry number (e.g. ENQ-001)"
+                      readOnly={Boolean(editingId)}
+                    />
+                    <span className="mt-1 block text-xs font-normal text-slate-500">
+                      Enter a unique enquiry number. It cannot be changed after creation.
+                    </span>
+                  </label>
 
                   <label className="text-sm font-medium">
                     Product Category *
