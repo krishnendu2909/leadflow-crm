@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import { normalizeDate } from "@/lib/lead-utils";
 import {
   readSheet,
   appendRow,
@@ -63,9 +64,9 @@ export async function GET(request: NextRequest) {
       .map((row, index) => ({
         id: row[0] || "",
         enquiryId: row[1] || "",
-        followupDate: row[2] || "",
+        followupDate: normalizeDate(row[2] || ""),
         remarks: row[3] || "",
-        nextFollowupDate: row[4] || "",
+        nextFollowupDate: normalizeDate(row[4] || ""),
         createdAt: row[5] || "",
         rowNumber: index + 2,
       }))

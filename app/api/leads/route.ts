@@ -198,15 +198,22 @@ export async function POST(request: NextRequest) {
     ]);
 
     const range = response.data.updates?.updatedRange || "";
-    const match = range.match(/!A(\d+)/);
+    const match = range.match(/!A(\\d+)/);
 
-    if (match) {
-      const row = Number(match[1]);
-      await updateRow(`Leads!N${row}:P${row}`, [[
-        `=IF(COUNTIF(Followups!B:B,A${row})=0,"",MAXIFS(Followups!C:C,Followups!B:B,A${row}))`,
-        `=IF(B${row}="","",TODAY()-MAX(B${row},IF(N${row}="",B${row},N${row})))`,
-        `=IF(O${row}="","",IF(O${row}<=30,"Hot",IF(O${row}<=60,"Warm","Cold")))`,
-      ]]);
+    if (!match) {
+      throw new Error("Google Sheets did not confirm the enquiry row was appended.");
+    }
+
+    const row = Number(match[1]);
+    await updateRow(`Leads!N${row}:P${row}`, [[
+      `=IF(COUNTIF(Followups!B:B,A${row})=0,"",MAXIFS(Followups!C:C,Followups!B:B,A${row}))`,
+      `=IF(B${row}="","",TODAY()-MAX(B${row},IF(N${row}="",B${row},N${row})))`,
+      `=IF(O${row}="","",IF(O${row}<=30,"Hot",IF(O${row}<=60,"Warm","Cold")))`,
+    ]]);
+
+    const savedRow = await readSheet(`Leads!A${row}:A${row}`);
+    if (savedRow[0]?.[0] !== id) {
+      throw new Error("The enquiry could not be verified in the configured Google Sheet. Check GOOGLE_SHEETS_ID and service-account access.");
     }
 
     return NextResponse.json({

@@ -111,10 +111,13 @@ export default function FollowupReminders({
       const latestByCustomer = new Map<string, Followup>();
 
       for (const item of followups) {
-        if (!item.enquiryId || !item.nextFollowupDate) continue;
+        if (!item.enquiryId) continue;
 
         const previous = latestByCustomer.get(item.enquiryId);
 
+        // Track the latest interaction even when it has no next date.
+        // This prevents an old reminder from reappearing after a newer
+        // follow-up has been recorded without scheduling another call.
         if (
           !previous ||
           item.followupDate > previous.followupDate ||
