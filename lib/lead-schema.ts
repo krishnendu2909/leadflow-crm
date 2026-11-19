@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const leadSchema = z.object({
-  enquiryId: z.string().trim().min(1, "Enquiry number is required").max(50, "Enquiry number must be 50 characters or fewer"),
+  enquiryId: z.string().trim().max(50, "Enquiry number must be 50 characters or fewer").optional().default(""),
   name: z.string().trim().min(2, "Customer name is required"),
   mobile: z.string().trim().regex(/^\d{10}$/, "Enter a valid 10-digit mobile number"),
   address: z.string().trim(),
@@ -13,7 +13,7 @@ export const leadSchema = z.object({
   enquiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid enquiry date"),
   quotationGiven: z.enum(["Yes", "No"]),
   quotationAmount: z.number().min(0),
-  dealStatus: z.enum(["Open", "Closed"]),
+  dealStatus: z.enum(["Open", "Closed", "Dropped"]),
 });
 
 export type LeadInput = z.infer<typeof leadSchema>;

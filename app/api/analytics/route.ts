@@ -98,6 +98,10 @@ export async function GET() {
       (row) => (row[13] || "").trim() === "Closed"
     ).length;
 
+    const droppedDeals = leads.filter(
+      (row) => (row[13] || "").trim() === "Dropped"
+    ).length;
+
     const quotationLeads = leads.filter(
       (row) => (row[11] || "").trim() === "Yes"
     );
@@ -151,6 +155,7 @@ export async function GET() {
     const dealAnalytics = [
       { status: "Open", count: openDeals },
       { status: "Closed", count: closedDeals },
+      { status: "Dropped", count: droppedDeals },
     ];
 
     const conversionRate =
@@ -165,6 +170,7 @@ export async function GET() {
         totalEnquiries,
         openDeals,
         closedDeals,
+        droppedDeals,
         conversionRate,
         quotationCount,
         quotationTotal,

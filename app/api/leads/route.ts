@@ -118,17 +118,12 @@ export async function POST(request: NextRequest) {
     const data = parsed.data;
     const { leads } = await getSheetData();
 
-const id = data.enquiryId.trim();
-    const existingIds = new Set(
-      leads.slice(1).map((row) => String(row[0] || "").trim().toLowerCase()).filter(Boolean)
-    );
-
-    if (existingIds.has(id.toLowerCase())) {
-      return NextResponse.json(
-        { success: false, message: "This enquiry number already exists. Please enter a unique number." },
-        { status: 409 }
-      );
-    }
+    // Generate the next KPD number from the highest number already in the sheet.
+    const highestNumber = leads.slice(1).reduce((max, row) => {
+      const match = /^KPD(\d+)$/i.exec(String(row[0] || "").trim());
+      return match ? Math.max(max, Number(match[1])) : max;
+    }, 100);
+    const id = `KPD${highestNumber + 1}`;
 
     const createdAt = new Date().toISOString();
 

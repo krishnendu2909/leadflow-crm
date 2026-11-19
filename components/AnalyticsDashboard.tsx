@@ -49,11 +49,9 @@ type Analytics = {
 };
 
 const currency = (value: number) =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
+  `₹${new Intl.NumberFormat("en-IN", {
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(value || 0)}`;
 
 const chartColors = ["#2563eb", "#16a34a"];
 

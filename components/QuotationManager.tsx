@@ -5,7 +5,7 @@ import { FilePlus2, Printer, RefreshCw, Search, X, FileText } from "lucide-react
 
 type Lead = { id: string; name: string; mobile: string; address: string; village: string; district: string; state: string };
 type Quotation = { quotationNumber: number; quotationDate: string; enquiryId: string; customerName: string; mobile: string; model: string; price: number; gstRate: number; gstAmount: number; total: number; amountWords: string; terms: string; createdAt: string };
-const money = (value: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(value || 0);
+const money = (value: number) => `₹${new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(value || 0)}`;
 const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 const inputClass = "mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 const defaultTerms = "1. This quotation is valid for 15 days from the date of issue.\n2. Prices are in Indian Rupees (INR).\n3. GST is charged at the rate selected in this quotation.\n4. Delivery, installation and payment terms shall be as mutually agreed.\n5. Any changes to the quoted model or specifications may change the quoted price.";
@@ -21,7 +21,7 @@ function amountInWords(value: number) {
   };
   const whole = Math.floor(value);
   const paise = Math.round((value - whole) * 100);
-  if (whole === 0 && paise === 0) return "Zero Rupees Only";
+  if (whole === 0 && paise === 0) return "Rupees Zero Only";
   let n = whole;
   const parts: string[] = [];
   for (const [size, label] of [[10000000, "Crore"], [100000, "Lakh"], [1000, "Thousand"], [1, ""]] as [number, string][]) {
@@ -29,7 +29,7 @@ function amountInWords(value: number) {
     if (chunk) parts.push(`${underThousand(chunk)}${label ? ` ${label}` : ""}`);
     n %= size;
   }
-  return `${parts.join(" ")} Rupees${paise ? ` and ${underThousand(paise)} Paise` : ""} Only`;
+  return `Rupees ${parts.join(" ")}${paise ? ` and ${underThousand(paise)} Paise` : ""} Only`;
 }
 
 export default function QuotationManager() {

@@ -56,7 +56,7 @@ type FormData = {
   enquiryDate: string;
   quotationGiven: "Yes" | "No";
   quotationAmount: number;
-  dealStatus: "Open" | "Closed";
+  dealStatus: "Open" | "Closed" | "Dropped";
 };
 
 const today = () => {
@@ -147,9 +147,17 @@ const [dateTo, setDateTo] = useState("");
     }));
   }
 
+  function getNextEnquiryId() {
+    const highest = leads.reduce((max, lead) => {
+      const match = /^KPD(\d+)$/i.exec(String(lead.id || "").trim());
+      return match ? Math.max(max, Number(match[1])) : max;
+    }, 100);
+    return `KPD${highest + 1}`;
+  }
+
   function openAddModal() {
     setEditingId(null);
-    setForm({ ...emptyForm });
+    setForm({ ...emptyForm, enquiryId: getNextEnquiryId() });
     setError("");
     setSuccess("");
     setModalOpen(true);
@@ -171,7 +179,7 @@ const [dateTo, setDateTo] = useState("");
       enquiryDate: lead.enquiryDate,
       quotationGiven: lead.quotationGiven === "Yes" ? "Yes" : "No",
       quotationAmount: lead.quotationAmount || 0,
-      dealStatus: lead.dealStatus === "Closed" ? "Closed" : "Open",
+      dealStatus: lead.dealStatus === "Closed" ? "Closed" : lead.dealStatus === "Dropped" ? "Dropped" : "Open",
     });
 
     setError("");
@@ -642,7 +650,7 @@ async function exportToExcel() {
         </section>
 
         {/* Deal summary */}
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">Open Deals</p>
             <p className="mt-2 text-3xl font-bold">{openDeals}</p>
@@ -651,6 +659,10 @@ async function exportToExcel() {
           <div className="rounded-2xl border bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">Closed Deals</p>
             <p className="mt-2 text-3xl font-bold">{closedDeals}</p>
+          </div>
+          <div className="rounded-2xl border bg-white p-5 shadow-sm">
+            <p className="text-sm text-slate-500">Dropped Deals</p>
+            <p className="mt-2 text-3xl font-bold">{leads.filter((lead) => lead.dealStatus === "Dropped").length}</p>
           </div>
         </section>
           <div id="followup-reminders" className="scroll-mt-24">
@@ -777,6 +789,7 @@ async function exportToExcel() {
                   "Cold",
                   "Open",
                   "Closed",
+                  "Dropped",
                 ].map((item) => (
                   <option key={item} value={item}>
                     {item}
@@ -865,7 +878,9 @@ async function exportToExcel() {
                         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
                           lead.dealStatus === "Closed"
                             ? "bg-green-50 text-green-700"
-                            : "bg-blue-50 text-blue-700"
+                            : lead.dealStatus === "Dropped"
+                              ? "bg-red-50 text-red-700"
+                              : "bg-blue-50 text-blue-700"
                         }`}>
                           {lead.dealStatus}
                         </span>
@@ -1036,16 +1051,12 @@ async function exportToExcel() {
                     Enquiry Number *
                     <input
                       required
-                      minLength={1}
-                      maxLength={50}
-                      className={inputClass}
+                      className={`${inputClass} bg-slate-50 font-semibold text-blue-700`}
                       value={form.enquiryId}
-                      onChange={(e) => changeField("enquiryId", e.target.value)}
-                      placeholder="Enter enquiry number (e.g. ENQ-001)"
-                      readOnly={Boolean(editingId)}
+                      readOnly
                     />
                     <span className="mt-1 block text-xs font-normal text-slate-500">
-                      Enter a unique enquiry number. It cannot be changed after creation.
+                      Automatically assigned in sequence (KPD101, KPD102, KPD103...).
                     </span>
                   </label>
 
@@ -1132,12 +1143,13 @@ async function exportToExcel() {
                       onChange={(e) =>
                         changeField(
                           "dealStatus",
-                          e.target.value as "Open" | "Closed"
+                          e.target.value as "Open" | "Closed" | "Dropped"
                         )
                       }
                     >
                       <option value="Open">Open</option>
                       <option value="Closed">Closed</option>
+                      <option value="Dropped">Dropped</option>
                     </select>
                   </label>
 
