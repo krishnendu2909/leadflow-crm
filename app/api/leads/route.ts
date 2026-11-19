@@ -7,6 +7,7 @@ import {
   updateRow,
   deleteRow,
   ensureSheet,
+  clearRange,
 } from "@/lib/google-sheets";
 import { leadSchema } from "@/lib/lead-schema";
 
@@ -37,7 +38,7 @@ import { leadSchema } from "@/lib/lead-schema";
 
 const LEAD_HEADERS = [
   "Enquiry_ID",
-  "Created_At",
+  "Enquiry_Date",
   "Customer_Name",
   "Mobile_Number",
   "Address",
@@ -46,7 +47,6 @@ const LEAD_HEADERS = [
   "State",
   "Product_Category",
   "Product_Subcategory",
-  "Enquiry_Date",
   "Quotation_Given",
   "Quotation_Amount",
   "Deal_Status",
@@ -65,12 +65,38 @@ const FOLLOWUP_HEADERS = [
 ];
 
 async function getSheetData() {
+  // Migrate the previous layout (Created_At in B and Enquiry_Date in K)
+  // to the new layout where the user-entered Enquiry_Date is stored in B.
+  const existing = await readSheet("Leads!A1:Q");
+  const oldHeaders = existing[0] || [];
+  const isOldLayout = oldHeaders[1] === "Created_At" && oldHeaders[10] === "Enquiry_Date";
+
+  if (isOldLayout) {
+    const migratedRows = existing.slice(1).map((row) => [
+      row[0] || "", row[10] || "", row[2] || "", row[3] || "",
+      row[4] || "", row[5] || "", row[6] || "", row[7] || "",
+      row[8] || "", row[9] || "", row[11] || "No", row[12] || 0,
+      row[13] || "Open", "", "", "",
+    ]);
+    await updateRow("Leads!A1:P" + Math.max(existing.length, 1), [LEAD_HEADERS, ...migratedRows]);
+    await clearRange("Leads!Q:Q");
+    // Restore the derived activity columns using the new column positions.
+    for (let i = 0; i < migratedRows.length; i++) {
+      const sheetRow = i + 2;
+      await updateRow(`Leads!N${sheetRow}:P${sheetRow}`, [[
+        `=IF(COUNTIF(Followups!B:B,A${sheetRow})=0,"",MAXIFS(Followups!C:C,Followups!B:B,A${sheetRow}))`,
+        `=IF(B${sheetRow}="","",TODAY()-MAX(B${sheetRow},IF(N${sheetRow}="",B${sheetRow},N${sheetRow})))`,
+        `=IF(O${sheetRow}="","",IF(O${sheetRow}<=30,"Hot",IF(O${sheetRow}<=60,"Warm","Cold")))`,
+      ]]);
+    }
+  }
+
   await Promise.all([
     ensureSheet("Leads", LEAD_HEADERS),
     ensureSheet("Followups", FOLLOWUP_HEADERS),
   ]);
   const [leads, followups] = await Promise.all([
-    readSheet("Leads!A1:Q"),
+    readSheet("Leads!A1:P"),
     readSheet("Followups!A1:F"),
   ]);
 
@@ -104,12 +130,12 @@ export async function GET() {
 
     const result = leads.slice(1).map((row, index) => {
       const lastFollowup = findLatestFollowup(row[0], followups);
-      const classification = getClassification(row[10] || "", lastFollowup);
+      const classification = getClassification(row[1] || "", lastFollowup);
 
       return {
         id: row[0],
         rowNumber: index + 2,
-        createdAt: row[1] || "",
+        enquiryDate: row[1] || "",
         name: row[2] || "",
         mobile: row[3] || "",
         address: row[4] || "",
@@ -118,13 +144,9 @@ export async function GET() {
         state: row[7] || "",
         product: row[8] || "",
         subcategory: row[9] || "",
-        enquiryDate: row[10] || "",
-        quotationGiven: row[11] || "No",
-        quotationAmount:
-  row[12] === "" || row[12] == null
-    ? 0
-    : Number(row[12]),
-        dealStatus: row[13] || "Open",
+        quotationGiven: row[10] || "No",
+        quotationAmount: row[11] === "" || row[11] == null ? 0 : Number(row[11]),
+        dealStatus: row[12] || "Open",
         lastFollowup,
         daysSinceActivity: classification.days,
         category: classification.category,
@@ -159,11 +181,9 @@ export async function POST(request: NextRequest) {
     }, 100);
     const id = `KPD${highestNumber + 1}`;
 
-    const createdAt = new Date().toISOString();
-
     const response = await appendRow("Leads", [
       id,
-      createdAt,
+      data.enquiryDate,
       data.name,
       data.mobile,
       data.address,
@@ -172,7 +192,6 @@ export async function POST(request: NextRequest) {
       data.state,
       data.product,
       data.subcategory,
-      data.enquiryDate,
       data.quotationGiven,
       data.quotationGiven === "Yes" ? data.quotationAmount : 0,
       data.dealStatus,
@@ -183,10 +202,10 @@ export async function POST(request: NextRequest) {
 
     if (match) {
       const row = Number(match[1]);
-      await updateRow(`Leads!O${row}:Q${row}`, [[
+      await updateRow(`Leads!N${row}:P${row}`, [[
         `=IF(COUNTIF(Followups!B:B,A${row})=0,"",MAXIFS(Followups!C:C,Followups!B:B,A${row}))`,
-        `=IF(K${row}="","",TODAY()-MAX(K${row},IF(O${row}="",K${row},O${row})))`,
-        `=IF(P${row}="","",IF(P${row}<=30,"Hot",IF(P${row}<=60,"Warm","Cold")))`,
+        `=IF(B${row}="","",TODAY()-MAX(B${row},IF(N${row}="",B${row},N${row})))`,
+        `=IF(O${row}="","",IF(O${row}<=30,"Hot",IF(O${row}<=60,"Warm","Cold")))`,
       ]]);
     }
 
@@ -243,9 +262,9 @@ export async function PUT(request: NextRequest) {
 
     const rowNumber = index + 1;
 
-    await updateRow(`Leads!A${rowNumber}:N${rowNumber}`, [[
+    await updateRow(`Leads!A${rowNumber}:M${rowNumber}`, [[
       id,
-      leads[index][1],
+      data.enquiryDate,
       data.name,
       data.mobile,
       data.address,
@@ -254,16 +273,15 @@ export async function PUT(request: NextRequest) {
       data.state,
       data.product,
       data.subcategory,
-      data.enquiryDate,
       data.quotationGiven,
       data.quotationGiven === "Yes" ? data.quotationAmount : 0,
       data.dealStatus,
     ]]);
 
-    await updateRow(`Leads!O${rowNumber}:Q${rowNumber}`, [[
+    await updateRow(`Leads!N${rowNumber}:P${rowNumber}`, [[
       `=IF(COUNTIF(Followups!B:B,A${rowNumber})=0,"",MAXIFS(Followups!C:C,Followups!B:B,A${rowNumber}))`,
-      `=IF(K${rowNumber}="","",TODAY()-MAX(K${rowNumber},IF(O${rowNumber}="",K${rowNumber},O${rowNumber})))`,
-      `=IF(P${rowNumber}="","",IF(P${rowNumber}<=30,"Hot",IF(P${rowNumber}<=60,"Warm","Cold")))`,
+      `=IF(B${rowNumber}="","",TODAY()-MAX(B${rowNumber},IF(N${rowNumber}="",B${rowNumber},N${rowNumber})))`,
+      `=IF(O${rowNumber}="","",IF(O${rowNumber}<=30,"Hot",IF(O${rowNumber}<=60,"Warm","Cold")))`,
     ]]);
 
     return NextResponse.json({

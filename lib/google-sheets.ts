@@ -105,6 +105,14 @@ export async function deleteRow(
   });
 }
 
+
+export async function clearRange(range: string) {
+  return sheets.spreadsheets.values.clear({
+    spreadsheetId,
+    range,
+  });
+}
+
 export async function ensureSheet(
   sheetName: string,
   headers: string[]
