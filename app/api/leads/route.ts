@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
       data.product,
       data.subcategory,
       data.quotationGiven,
-      data.quotationGiven === "Yes" ? data.quotationAmount : 0,
+      data.quotationAmount,
       data.dealStatus,
     ];
 
@@ -290,7 +290,7 @@ export async function PUT(request: NextRequest) {
       data.product,
       data.subcategory,
       data.quotationGiven,
-      data.quotationGiven === "Yes" ? data.quotationAmount : 0,
+      data.quotationAmount,
       data.dealStatus,
     ]]);
 

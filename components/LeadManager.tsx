@@ -208,10 +208,9 @@ const [dateTo, setDateTo] = useState("");
     try {
       const payload = {
         ...form,
-        quotationAmount:
-          form.quotationGiven === "Yes"
-            ? Number(form.quotationAmount)
-            : 0,
+        // Keep the entered quotation amount even if the user changes
+        // Quotation Given? to No; do not silently discard the value.
+        quotationAmount: Number(form.quotationAmount) || 0,
         id: editingId,
       };
 

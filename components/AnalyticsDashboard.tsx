@@ -30,6 +30,7 @@ type Analytics = {
     totalEnquiries: number;
     openDeals: number;
     closedDeals: number;
+    droppedDeals: number;
     conversionRate: number;
     quotationCount: number;
     quotationTotal: number;
@@ -53,7 +54,7 @@ const currency = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value || 0)}`;
 
-const chartColors = ["#2563eb", "#16a34a"];
+const chartColors = ["#2563eb", "#16a34a", "#dc2626"];
 
 export default function AnalyticsDashboard() {
   const [data, setData] = useState<Analytics | null>(null);

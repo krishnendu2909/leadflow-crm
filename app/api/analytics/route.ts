@@ -69,7 +69,7 @@ export async function GET() {
     const classifications = leads.map((lead) => {
       const lastFollowup = latestFollowups.get(lead[0]) || "";
 
-      return getClassification(lead[10] || "", lastFollowup);
+      return getClassification(lead[1] || "", lastFollowup);
     });
 
     const totalEnquiries = leads.length;
@@ -91,25 +91,25 @@ export async function GET() {
     ).length;
 
     const openDeals = leads.filter(
-      (row) => (row[13] || "Open").trim() === "Open"
+      (row) => (row[12] || "Open").trim() === "Open"
     ).length;
 
     const closedDeals = leads.filter(
-      (row) => (row[13] || "").trim() === "Closed"
+      (row) => (row[12] || "").trim() === "Closed"
     ).length;
 
     const droppedDeals = leads.filter(
-      (row) => (row[13] || "").trim() === "Dropped"
+      (row) => (row[12] || "").trim() === "Dropped"
     ).length;
 
     const quotationLeads = leads.filter(
-      (row) => (row[11] || "").trim() === "Yes"
+      (row) => (row[10] || "").trim() === "Yes"
     );
 
     const quotationCount = quotationLeads.length;
 
     const quotationTotal = quotationLeads.reduce(
-      (sum, row) => sum + parseCurrency(row[12]),
+      (sum, row) => sum + parseCurrency(row[11]),
       0
     );
 
@@ -126,7 +126,7 @@ export async function GET() {
     );
 
     for (const lead of leads) {
-      const date = normalizeDate(lead[10]);
+      const date = normalizeDate(lead[1]);
       const key = date ? date.slice(0, 7) : "";
       const index = monthIndex.get(key);
 
