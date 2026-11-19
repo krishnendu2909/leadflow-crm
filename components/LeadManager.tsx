@@ -424,6 +424,19 @@ async function exportToExcel() {
 
   return (
     <main className="min-h-screen bg-[#f6f8fc] text-slate-800">
+      <aside className="leadflow-sidebar hidden lg:flex">
+        <div className="leadflow-brand"><span className="leadflow-mark">L</span><span><strong>LeadFlow</strong><small>CRM WORKSPACE</small></span></div>
+        <p className="leadflow-nav-label">WORKSPACE</p>
+        <button className="leadflow-nav-item active" onClick={() => window.scrollTo({top:0,behavior:"smooth"})}>▦ <span>Overview</span></button>
+        <button className="leadflow-nav-item" onClick={() => document.querySelector("table")?.scrollIntoView({behavior:"smooth",block:"start"})}>▤ <span>Enquiries</span></button>
+        <button className="leadflow-nav-item" onClick={() => document.querySelector("table")?.scrollIntoView({behavior:"smooth",block:"start"})}>♙ <span>Leads</span></button>
+        <button className="leadflow-nav-item" onClick={() => document.querySelector("table")?.scrollIntoView({behavior:"smooth",block:"start"})}>▣ <span>Customers</span></button>
+        <button className="leadflow-nav-item" onClick={() => document.querySelector("table")?.scrollIntoView({behavior:"smooth",block:"start"})}>▧ <span>Quotations</span></button>
+        <button className="leadflow-nav-item" onClick={() => document.querySelector("section.space-y-5")?.scrollIntoView({behavior:"smooth",block:"start"})}>◷ <span>Follow-ups</span></button>
+        <p className="leadflow-nav-label insights-label">INSIGHTS</p>
+        <button className="leadflow-nav-item" onClick={() => document.querySelector("section.space-y-6")?.scrollIntoView({behavior:"smooth",block:"start"})}>◫ <span>Analytics</span></button>
+        <div className="leadflow-sidebar-foot"><span className="leadflow-avatar">LF</span><span><strong>LeadFlow CRM</strong><small>Workspace</small></span></div>
+      </aside>
 
       {/* Header */}
       <header className="sticky top-0 z-20 flex h-20 items-center justify-between border-b bg-white px-5 md:px-8">
