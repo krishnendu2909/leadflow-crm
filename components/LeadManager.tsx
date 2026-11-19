@@ -436,7 +436,15 @@ async function exportToExcel() {
         <button className="leadflow-nav-item" onClick={() => document.querySelector("table")?.scrollIntoView({behavior:"smooth",block:"start"})}>▤ <span>Enquiries</span></button>
         <button className="leadflow-nav-item" onClick={() => document.querySelector("table")?.scrollIntoView({behavior:"smooth",block:"start"})}>♙ <span>Leads</span></button>
         <button className="leadflow-nav-item" onClick={() => document.querySelector("table")?.scrollIntoView({behavior:"smooth",block:"start"})}>▣ <span>Customers</span></button>
-        <button className="leadflow-nav-item" onClick={() => document.querySelector("table")?.scrollIntoView({behavior:"smooth",block:"start"})}>▧ <span>Quotations</span></button>
+        <button
+          className={`leadflow-nav-item ${activeSection === "Quotations" ? "active" : ""}`}
+          onClick={() => {
+            setActiveSection("Quotations");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        >
+          ▧ <span>Quotations</span>
+        </button>
         <button className="leadflow-nav-item" onClick={() => document.querySelector("section.space-y-5")?.scrollIntoView({behavior:"smooth",block:"start"})}>◷ <span>Follow-ups</span></button>
         <p className="leadflow-nav-label insights-label">INSIGHTS</p>
         <button className="leadflow-nav-item" onClick={() => document.querySelector("section.space-y-6")?.scrollIntoView({behavior:"smooth",block:"start"})}>◫ <span>Analytics</span></button>
