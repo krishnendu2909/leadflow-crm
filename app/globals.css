@@ -1,26 +1,36 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+:root{--background:#f4f6fb;--foreground:#17243a}
+@theme inline{--color-background:var(--background);--color-foreground:var(--foreground);--font-sans:var(--font-geist-sans);--font-mono:var(--font-geist-mono)}
+*{box-sizing:border-box}
+body{background:var(--background);color:var(--foreground);font-family:Arial,Helvetica,sans-serif}
+button,select,input,textarea{transition:all .18s ease}
+button{cursor:pointer}
+/* LeadFlow premium visual system */
+main.min-h-screen{background:#f4f6fb!important;color:#17243a!important}
+main>header{height:82px!important;padding-inline:clamp(18px,3vw,48px)!important;border-color:#e8edf5!important;box-shadow:0 2px 12px rgba(20,35,60,.035)}
+main>header>div:first-child>div:first-child{border-radius:14px!important;background:linear-gradient(145deg,#477cf6,#2857d8)!important;box-shadow:0 8px 18px rgba(50,103,233,.22)}
+main>header h1{letter-spacing:-.5px}
+main>.mx-auto{max-width:1640px!important;padding:clamp(18px,3vw,42px)!important;gap:30px!important}
+main h2{letter-spacing:-.6px}
+main section.rounded-2xl,main section.overflow-hidden.rounded-2xl,main .rounded-2xl.border{border-color:#e6ebf3!important;box-shadow:0 5px 22px rgba(26,42,68,.045)!important;border-radius:18px!important}
+main .bg-white{background:#fff!important}
+main button.bg-blue-600{background:linear-gradient(135deg,#477cf6,#285bdc)!important;box-shadow:0 7px 16px rgba(50,103,233,.18)}
+main button.bg-blue-600:hover{filter:brightness(.96);transform:translateY(-1px)}
+main input,main select,main textarea{border-color:#e1e7f0!important;border-radius:11px!important}
+main input:focus,main select:focus,main textarea:focus{border-color:#6d91f3!important;box-shadow:0 0 0 3px rgba(71,124,246,.12)!important;outline:none}
+main table thead{background:#f7f9fc!important;color:#7e8ba0!important}
+main table th{font-size:10px!important;letter-spacing:.08em!important;font-weight:700!important;padding-block:16px!important}
+main table td{padding-block:17px!important}
+main tbody tr:hover{background:#f8faff!important}
+main .shadow-sm{box-shadow:0 5px 22px rgba(26,42,68,.045)!important}
+main .sticky{backdrop-filter:blur(14px)}
+/* Analytics and reminder surfaces */
+section.space-y-6.rounded-2xl,section.space-y-5.rounded-2xl{padding:26px!important}
+section .recharts-cartesian-grid line{stroke:#edf1f6}
+section .recharts-text{fill:#8290a5}
+/* Dialog polish */
+.fixed.inset-0>div.my-auto{border-radius:22px!important;box-shadow:0 24px 80px rgba(15,28,50,.22)!important}
+@media(max-width:700px){main>.mx-auto{padding:16px!important}main>header{padding-inline:16px!important}section.space-y-6.rounded-2xl,section.space-y-5.rounded-2xl{padding:18px!important}main table{min-width:850px}}
+.leadflow-sidebar{position:fixed;z-index:30;inset:0 auto 0 0;width:258px;background:#111b2e;color:#fff;padding:28px 17px;flex-direction:column;box-shadow:8px 0 30px rgba(17,27,46,.06)}
+.leadflow-brand{display:flex;align-items:center;gap:13px;padding:0 10px 42px}.leadflow-mark{display:grid;place-items:center;width:45px;height:45px;border-radius:14px;background:linear-gradient(145deg,#5c8cff,#3261df);font-size:25px;font-weight:800;color:white;box-shadow:0 8px 20px #3261df55}.leadflow-brand strong{display:block;font-size:20px;letter-spacing:-.5px}.leadflow-brand small,.leadflow-sidebar-foot small{display:block;margin-top:4px;color:#8392aa;font-size:9px;letter-spacing:1.3px;font-weight:700}.leadflow-nav-label{padding:0 13px;margin:0 0 12px;color:#71819b;font-size:10px;font-weight:800;letter-spacing:1.4px}.leadflow-nav-item{display:flex;align-items:center;gap:15px;width:100%;height:48px;padding:0 14px;margin:3px 0;border:0;border-radius:11px;background:transparent;color:#aebbd0;text-align:left;font-size:17px}.leadflow-nav-item span{font-size:14px;font-weight:600}.leadflow-nav-item:hover{background:#1c2b46;color:#fff}.leadflow-nav-item.active{background:#263c64;color:#fff;box-shadow:inset 3px 0 #6690ff}.insights-label{margin-top:35px}.leadflow-sidebar-foot{display:flex;align-items:center;gap:12px;margin-top:auto;padding:18px 9px 5px;border-top:1px solid #2b3850}.leadflow-avatar{display:grid;place-items:center;width:39px;height:39px;border-radius:12px;background:#2d4268;color:#dbe7ff;font-size:12px;font-weight:800}.leadflow-sidebar-foot strong{font-size:12px}.leadflow-sidebar-foot small{letter-spacing:0;font-size:10px;font-weight:500}.leadflow-sidebar~header,.leadflow-sidebar~.mx-auto{margin-left:258px!important}.leadflow-sidebar~header{padding-left:34px!important}
+@media(max-width:1023px){.leadflow-sidebar~header,.leadflow-sidebar~.mx-auto{margin-left:0!important}}
