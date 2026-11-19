@@ -9,6 +9,8 @@ import {
   CalendarDays,
   History,
   MessageSquare,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 
 type Followup = {
@@ -18,6 +20,7 @@ type Followup = {
   remarks: string;
   nextFollowupDate: string;
   createdAt: string;
+  rowNumber?: number;
 };
 
 type Props = {
@@ -64,6 +67,7 @@ export default function FollowupManager({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [followupDate, setFollowupDate] = useState(getToday());
   const [remarks, setRemarks] = useState("");
@@ -101,9 +105,26 @@ export default function FollowupManager({
     fetchHistory();
   }, [fetchHistory]);
 
+  function resetForm() {
+    setEditingId(null);
+    setFollowupDate(getToday());
+    setRemarks("");
+    setNextFollowupDate("");
+    setError("");
+    setSuccess("");
+  }
+
+  function startEditing(item: Followup) {
+    setEditingId(item.id);
+    setFollowupDate(item.followupDate.slice(0, 10));
+    setRemarks(item.remarks);
+    setNextFollowupDate(item.nextFollowupDate.slice(0, 10));
+    setError("");
+    setSuccess("");
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     if (saving) return;
 
     setSaving(true);
@@ -112,37 +133,57 @@ export default function FollowupManager({
 
     try {
       const response = await fetch("/api/followups", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        method: editingId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: editingId,
           enquiryId,
           followupDate,
           remarks,
           nextFollowupDate,
         }),
       });
-
       const result = await response.json();
-
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Unable to save follow-up.");
       }
 
-      setSuccess("Follow-up saved successfully.");
+      setSuccess(editingId ? "Follow-up updated successfully." : "Follow-up created successfully.");
+      setEditingId(null);
       setRemarks("");
       setFollowupDate(getToday());
       setNextFollowupDate("");
-
       await fetchHistory();
       await onSaved();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Unable to save follow-up."
-      );
+      setError(err instanceof Error ? err.message : "Unable to save follow-up.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete(item: Followup) {
+    const confirmed = window.confirm(
+      `Delete this follow-up dated ${formatDate(item.followupDate)}? This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setError("");
+    setSuccess("");
+    try {
+      const response = await fetch(`/api/followups?id=${encodeURIComponent(item.id)}`, {
+        method: "DELETE",
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Unable to delete follow-up.");
+      }
+      if (editingId === item.id) resetForm();
+      setSuccess("Follow-up deleted successfully.");
+      await fetchHistory();
+      await onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete follow-up.");
     }
   }
 
@@ -175,7 +216,7 @@ export default function FollowupManager({
           <section>
             <h3 className="mb-4 flex items-center gap-2 font-bold text-slate-800">
               <Plus size={18} className="text-blue-600" />
-              Record New Follow-up
+              {editingId ? "Edit Follow-up" : "Record New Follow-up"}
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -243,10 +284,19 @@ export default function FollowupManager({
                 ) : (
                   <>
                     <Plus size={17} />
-                    Save Follow-up
+                    {editingId ? "Update Follow-up" : "Save Follow-up"}
                   </>
                 )}
               </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="w-full rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                >
+                  Cancel Edit
+                </button>
+              )}
             </form>
           </section>
 
@@ -298,9 +348,26 @@ export default function FollowupManager({
                       <p className="text-sm font-semibold text-slate-800">
                         {formatDate(item.followupDate)}
                       </p>
-                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs text-blue-700">
-                        Follow-up
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => startEditing(item)}
+                          className="rounded-lg p-2 text-slate-500 hover:bg-blue-50 hover:text-blue-700"
+                          title="Edit follow-up"
+                          aria-label="Edit follow-up"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(item)}
+                          className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-700"
+                          title="Delete follow-up"
+                          aria-label="Delete follow-up"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </div>
 
                     <p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">

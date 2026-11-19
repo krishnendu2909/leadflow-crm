@@ -10,7 +10,10 @@ export const leadSchema = z.object({
   state: z.string().trim(),
   product: z.string().trim().min(1, "Product category is required"),
   subcategory: z.string().trim(),
-  enquiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid enquiry date"),
+  enquiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid enquiry date").optional().default(() => {
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }),
   quotationGiven: z.enum(["Yes", "No"]),
   quotationAmount: z.number().min(0),
   dealStatus: z.enum(["Open", "Closed", "Dropped"]),

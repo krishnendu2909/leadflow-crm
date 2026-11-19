@@ -137,7 +137,12 @@ export async function ensureSheet(
     range: `${sheetName}!A1:${String.fromCharCode(64 + headers.length)}1`,
   });
 
-  if (!current.data.values?.[0]?.length) {
+  const existingHeaders = current.data.values?.[0] ?? [];
+  const headersMatch = headers.every((header, index) => existingHeaders[index] === header)
+    && existingHeaders.length === headers.length;
+
+  // Keep the first row aligned with the application's schema without touching data rows.
+  if (!headersMatch) {
     await sheets.spreadsheets.values.update({
       spreadsheetId,
       range: `${sheetName}!A1`,

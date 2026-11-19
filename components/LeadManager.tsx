@@ -157,7 +157,7 @@ const [dateTo, setDateTo] = useState("");
 
   function openAddModal() {
     setEditingId(null);
-    setForm({ ...emptyForm, enquiryId: getNextEnquiryId() });
+    setForm({ ...emptyForm, enquiryId: getNextEnquiryId(), enquiryDate: today() });
     setError("");
     setSuccess("");
     setModalOpen(true);
@@ -1081,19 +1081,22 @@ async function exportToExcel() {
                     />
                   </label>
 
-                  <label className="text-sm font-medium">
+                  <div className="text-sm font-medium">
                     <span className="flex items-center gap-2">
                       <CalendarDays size={15} />
-                      Enquiry Date *
+                      Enquiry Date
                     </span>
                     <input
                       type="date"
-                      required
-                      className={inputClass}
-                      value={form.enquiryDate}
-                      onChange={(e) => changeField("enquiryDate", e.target.value)}
+                      readOnly
+                      className={`${inputClass} cursor-not-allowed bg-slate-50 text-slate-600`}
+                      value={form.enquiryDate || today()}
+                      aria-label="Enquiry date automatically set to today"
                     />
-                  </label>
+                    <p className="mt-1 text-xs font-normal text-slate-400">
+                      Automatically recorded in the Leads sheet.
+                    </p>
+                  </div>
 
                   <label className="text-sm font-medium">
                     Quotation Given?

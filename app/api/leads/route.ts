@@ -6,6 +6,7 @@ import {
   appendRow,
   updateRow,
   deleteRow,
+  ensureSheet,
 } from "@/lib/google-sheets";
 import { leadSchema } from "@/lib/lead-schema";
 
@@ -34,7 +35,40 @@ import { leadSchema } from "@/lib/lead-schema";
 //   };
 // }
 
+const LEAD_HEADERS = [
+  "Enquiry_ID",
+  "Created_At",
+  "Customer_Name",
+  "Mobile_Number",
+  "Address",
+  "Village",
+  "District",
+  "State",
+  "Product_Category",
+  "Product_Subcategory",
+  "Enquiry_Date",
+  "Quotation_Given",
+  "Quotation_Amount",
+  "Deal_Status",
+  "Last_Followup_Date",
+  "Days_Since_Activity",
+  "Lead_Category",
+];
+
+const FOLLOWUP_HEADERS = [
+  "Followup_ID",
+  "Enquiry_ID",
+  "Followup_Date",
+  "Remarks",
+  "Next_Followup_Date",
+  "Created_At",
+];
+
 async function getSheetData() {
+  await Promise.all([
+    ensureSheet("Leads", LEAD_HEADERS),
+    ensureSheet("Followups", FOLLOWUP_HEADERS),
+  ]);
   const [leads, followups] = await Promise.all([
     readSheet("Leads!A1:Q"),
     readSheet("Followups!A1:F"),
