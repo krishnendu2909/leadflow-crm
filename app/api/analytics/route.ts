@@ -29,27 +29,14 @@ function getLastSixMonths() {
   return months;
 }
 
-// Converts numeric and INR-formatted values into numbers.
 function parseCurrency(value: unknown): number {
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? Math.max(0, value) : 0;
-  }
-
-  if (value === null || value === undefined || value === "") {
-    return 0;
-  }
-
+  if (typeof value === "number") return Number.isFinite(value) ? Math.max(0, value) : 0;
+  if (value === null || value === undefined || value === "") return 0;
   const raw = String(value).trim();
-
-  // Handles values such as (₹50,000).
-  const isNegative = raw.startsWith("(") && raw.endsWith(")");
-
-  const cleaned = raw.replace(/[^\d.-]/g, "");
-  const amount = Number(cleaned);
-
+  const negative = raw.startsWith("(") && raw.endsWith(")");
+  const amount = Number(raw.replace(/[^\d.-]/g, ""));
   if (!Number.isFinite(amount)) return 0;
-
-  return Math.max(0, isNegative ? -amount : amount);
+  return Math.max(0, negative ? -amount : amount);
 }
 
 export async function GET() {
@@ -111,10 +98,8 @@ export async function GET() {
       (row) => (row[13] || "").trim() === "Closed"
     ).length;
 
-    // Quotation status is column L (index 11).
-    // Quotation amount is column M (index 12).
     const quotationLeads = leads.filter(
-      (row) => String(row[11] || "").trim().toLowerCase() === "yes"
+      (row) => (row[11] || "").trim() === "Yes"
     );
 
     const quotationCount = quotationLeads.length;

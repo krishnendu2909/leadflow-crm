@@ -104,3 +104,45 @@ export async function deleteRow(
     },
   });
 }
+
+export async function ensureSheet(
+  sheetName: string,
+  headers: string[]
+) {
+  const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+  const exists = spreadsheet.data.sheets?.some(
+    (item) => item.properties?.title === sheetName
+  );
+
+  if (!exists) {
+    try {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests: [{ addSheet: { properties: { title: sheetName } } }],
+        },
+      });
+    } catch (error) {
+      // Another request may have created the tab at the same time.
+      const refreshed = await sheets.spreadsheets.get({ spreadsheetId });
+      const createdByAnotherRequest = refreshed.data.sheets?.some(
+        (item) => item.properties?.title === sheetName
+      );
+      if (!createdByAnotherRequest) throw error;
+    }
+  }
+
+  const current = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${sheetName}!A1:${String.fromCharCode(64 + headers.length)}1`,
+  });
+
+  if (!current.data.values?.[0]?.length) {
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `${sheetName}!A1`,
+      valueInputOption: "RAW",
+      requestBody: { values: [headers] },
+    });
+  }
+}

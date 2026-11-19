@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import FollowupManager from "@/components/FollowupManager";
 import FollowupReminders from "@/components/FollowupReminders";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import QuotationManager from "@/components/QuotationManager";
 import {
   Plus,
   Search,
@@ -86,6 +87,7 @@ const inputClass =
   "mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 
 export default function LeadManager() {
+  const [activeSection, setActiveSection] = useState<"Overview" | "Enquiries" | "Quotations">("Overview");
   const [leads, setLeads] = useState<Lead[]>([]);
   const [followupLead, setFollowupLead] = useState<Lead | null>(null);
   const [reminderLead, setReminderLead] = useState<Lead | null>(null);
@@ -471,8 +473,18 @@ async function exportToExcel() {
         </button>
       </header>
 
-      <div className="mx-auto max-w-[1500px] space-y-7 p-5 md:p-8">
+      <nav className="border-b bg-white px-5 md:px-8">
+        <div className="mx-auto flex max-w-[1500px] gap-2 overflow-x-auto">
+          {(["Overview", "Enquiries", "Quotations"] as const).map((section) => (
+            <button key={section} onClick={() => setActiveSection(section)} className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition ${activeSection === section ? "border-blue-600 text-blue-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>
+              {section === "Quotations" ? "▧ " : section === "Enquiries" ? "▤ " : "▦ "}{section}
+            </button>
+          ))}
+        </div>
+      </nav>
 
+      <div className="mx-auto max-w-[1500px] space-y-7 p-5 md:p-8">
+        {activeSection === "Quotations" ? <QuotationManager /> : <>
         {/* Page heading */}
         <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
@@ -800,6 +812,7 @@ async function exportToExcel() {
             </table>
           </div>
         </section>
+        </>}
       </div>
       
       {/* ADD / EDIT MODAL */}
