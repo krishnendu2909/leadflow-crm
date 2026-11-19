@@ -430,25 +430,96 @@ async function exportToExcel() {
   return (
     <main className="min-h-screen bg-[#f6f8fc] text-slate-800">
       <aside className="leadflow-sidebar hidden lg:flex">
-        <div className="leadflow-brand"><span className="leadflow-mark">L</span><span><strong>LeadFlow</strong><small>CRM WORKSPACE</small></span></div>
+        <div className="leadflow-brand">
+          <span className="leadflow-mark">L</span>
+          <span>
+            <strong>LeadFlow</strong>
+            <small>CRM WORKSPACE</small>
+          </span>
+        </div>
+
         <p className="leadflow-nav-label">WORKSPACE</p>
-        <button className="leadflow-nav-item active" onClick={() => window.scrollTo({top:0,behavior:"smooth"})}>▦ <span>Overview</span></button>
-        <button className="leadflow-nav-item" onClick={() => document.querySelector("table")?.scrollIntoView({behavior:"smooth",block:"start"})}>▤ <span>Enquiries</span></button>
-        <button className="leadflow-nav-item" onClick={() => document.querySelector("table")?.scrollIntoView({behavior:"smooth",block:"start"})}>♙ <span>Leads</span></button>
-        <button className="leadflow-nav-item" onClick={() => document.querySelector("table")?.scrollIntoView({behavior:"smooth",block:"start"})}>▣ <span>Customers</span></button>
+
         <button
+          type="button"
+          className={`leadflow-nav-item ${activeSection === "Overview" ? "active" : ""}`}
+          onClick={() => setActiveSection("Overview")}
+        >
+          ▦ <span>Overview</span>
+        </button>
+
+        <button
+          type="button"
+          className={`leadflow-nav-item ${activeSection === "Enquiries" ? "active" : ""}`}
+          onClick={() => setActiveSection("Enquiries")}
+        >
+          ▤ <span>Enquiries</span>
+        </button>
+
+        <button
+          type="button"
+          className={`leadflow-nav-item ${activeSection === "Enquiries" ? "active" : ""}`}
+          onClick={() => setActiveSection("Enquiries")}
+        >
+          ♙ <span>Leads</span>
+        </button>
+
+        <button
+          type="button"
+          className={`leadflow-nav-item ${activeSection === "Enquiries" ? "active" : ""}`}
+          onClick={() => setActiveSection("Enquiries")}
+        >
+          ▣ <span>Customers</span>
+        </button>
+
+        <button
+          type="button"
           className={`leadflow-nav-item ${activeSection === "Quotations" ? "active" : ""}`}
-          onClick={() => {
-            setActiveSection("Quotations");
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
+          onClick={() => setActiveSection("Quotations")}
         >
           ▧ <span>Quotations</span>
         </button>
-        <button className="leadflow-nav-item" onClick={() => document.querySelector("section.space-y-5")?.scrollIntoView({behavior:"smooth",block:"start"})}>◷ <span>Follow-ups</span></button>
+
+        <button
+          type="button"
+          className="leadflow-nav-item"
+          onClick={() => {
+            setActiveSection("Enquiries");
+            window.setTimeout(() => {
+              document.getElementById("followup-reminders")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }, 0);
+          }}
+        >
+          ◷ <span>Follow-ups</span>
+        </button>
+
         <p className="leadflow-nav-label insights-label">INSIGHTS</p>
-        <button className="leadflow-nav-item" onClick={() => document.querySelector("section.space-y-6")?.scrollIntoView({behavior:"smooth",block:"start"})}>◫ <span>Analytics</span></button>
-        <div className="leadflow-sidebar-foot"><span className="leadflow-avatar">LF</span><span><strong>LeadFlow CRM</strong><small>Workspace</small></span></div>
+        <button
+          type="button"
+          className="leadflow-nav-item"
+          onClick={() => {
+            setActiveSection("Enquiries");
+            window.setTimeout(() => {
+              document.getElementById("business-analytics")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }, 0);
+          }}
+        >
+          ◫ <span>Analytics</span>
+        </button>
+
+        <div className="leadflow-sidebar-foot">
+          <span className="leadflow-avatar">LF</span>
+          <span>
+            <strong>LeadFlow CRM</strong>
+            <small>Workspace</small>
+          </span>
+        </div>
       </aside>
 
       {/* Header */}
@@ -484,8 +555,18 @@ async function exportToExcel() {
       <nav className="border-b bg-white px-5 md:px-8">
         <div className="mx-auto flex max-w-[1500px] gap-2 overflow-x-auto">
           {(["Overview", "Enquiries", "Quotations"] as const).map((section) => (
-            <button key={section} onClick={() => setActiveSection(section)} className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition ${activeSection === section ? "border-blue-600 text-blue-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>
-              {section === "Quotations" ? "▧ " : section === "Enquiries" ? "▤ " : "▦ "}{section}
+            <button
+              key={section}
+              type="button"
+              onClick={() => setActiveSection(section)}
+              className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition ${
+                activeSection === section
+                  ? "border-blue-600 text-blue-700"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              {section === "Quotations" ? "▧ " : section === "Enquiries" ? "▤ " : "▦ "}
+              {section}
             </button>
           ))}
         </div>
@@ -572,11 +653,15 @@ async function exportToExcel() {
             <p className="mt-2 text-3xl font-bold">{closedDeals}</p>
           </div>
         </section>
-          <FollowupReminders
-  onOpenFollowup={(lead) => setReminderLead(lead)}
-/>
+          <div id="followup-reminders" className="scroll-mt-24">
+            <FollowupReminders
+              onOpenFollowup={(lead) => setReminderLead(lead)}
+            />
+          </div>
           {/* Business Analytics */}
-      <AnalyticsDashboard />
+          <div id="business-analytics" className="scroll-mt-24">
+            <AnalyticsDashboard />
+          </div>
       <div className="grid grid-cols-1 gap-3 border-t p-5 sm:grid-cols-2 lg:grid-cols-5">
 
   <select
