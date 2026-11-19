@@ -77,7 +77,7 @@ const emptyForm: FormData = {
   state: "",
   product: "",
   subcategory: "",
-  enquiryDate: today(),
+  enquiryDate: "",
   quotationGiven: "No",
   quotationAmount: 0,
   dealStatus: "Open",
@@ -157,7 +157,7 @@ const [dateTo, setDateTo] = useState("");
 
   function openAddModal() {
     setEditingId(null);
-    setForm({ ...emptyForm, enquiryId: getNextEnquiryId(), enquiryDate: today() });
+    setForm({ ...emptyForm, enquiryId: getNextEnquiryId(), enquiryDate: "" });
     setError("");
     setSuccess("");
     setModalOpen(true);
@@ -1088,13 +1088,14 @@ async function exportToExcel() {
                     </span>
                     <input
                       type="date"
-                      readOnly
-                      className={`${inputClass} cursor-not-allowed bg-slate-50 text-slate-600`}
-                      value={form.enquiryDate || today()}
-                      aria-label="Enquiry date automatically set to today"
+                      required
+                      className={inputClass}
+                      value={form.enquiryDate}
+                      onChange={(e) => changeField("enquiryDate", e.target.value)}
+                      aria-label="Enter enquiry date"
                     />
                     <p className="mt-1 text-xs font-normal text-slate-400">
-                      Automatically recorded in the Leads sheet.
+                      Enter the date the customer enquiry was received. This date is saved and retained when you edit the enquiry.
                     </p>
                   </div>
 

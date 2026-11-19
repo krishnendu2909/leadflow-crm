@@ -106,8 +106,12 @@ async function getSheetData() {
 function failure(error: unknown) {
   console.error("CRM API error:", error);
 
+  const message = error instanceof Error
+    ? error.message
+    : "An unexpected server error occurred.";
+
   return NextResponse.json(
-    { success: false, message: "Unable to process request." },
+    { success: false, message },
     { status: 500 }
   );
 }
@@ -135,7 +139,7 @@ export async function GET() {
       return {
         id: row[0],
         rowNumber: index + 2,
-        enquiryDate: row[1] || "",
+        enquiryDate: normalizeDate(row[1] || ""),
         name: row[2] || "",
         mobile: row[3] || "",
         address: row[4] || "",
@@ -198,13 +202,20 @@ export async function POST(request: NextRequest) {
     ]);
 
     const range = response.data.updates?.updatedRange || "";
-    const match = range.match(/!A(\\d+)/);
+    const match = range.match(/(?:^|!)A(\d+)(?:[:!]|$)/i);
 
-    if (!match) {
-      throw new Error("Google Sheets did not confirm the enquiry row was appended.");
+    // Some Sheets API responses omit updatedRange. In that case, locate the
+    // newly appended enquiry by its unique ID instead of reporting a false failure.
+    let row = match ? Number(match[1]) : 0;
+    if (!row) {
+      const refreshedLeads = await readSheet("Leads!A1:A");
+      const savedIndex = refreshedLeads.findIndex((values, index) => index > 0 && values[0] === id);
+      if (savedIndex > 0) row = savedIndex + 1;
     }
 
-    const row = Number(match[1]);
+    if (!row) {
+      throw new Error("Google Sheets did not return the saved enquiry row. Check the Leads tab and spreadsheet permissions before retrying.");
+    }
     await updateRow(`Leads!N${row}:P${row}`, [[
       `=IF(COUNTIF(Followups!B:B,A${row})=0,"",MAXIFS(Followups!C:C,Followups!B:B,A${row}))`,
       `=IF(B${row}="","",TODAY()-MAX(B${row},IF(N${row}="",B${row},N${row})))`,
