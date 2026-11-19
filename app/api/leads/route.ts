@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getClassification, normalizeDate } from "@/lib/lead-utils";
 import {
   readSheet,
-  appendRow,
   updateRow,
   deleteRow,
   ensureSheet,
@@ -185,7 +184,7 @@ export async function POST(request: NextRequest) {
     }, 100);
     const id = `KPD${highestNumber + 1}`;
 
-    const response = await appendRow("Leads", [
+    const values = [
       id,
       data.enquiryDate,
       data.name,
@@ -199,33 +198,32 @@ export async function POST(request: NextRequest) {
       data.quotationGiven,
       data.quotationGiven === "Yes" ? data.quotationAmount : 0,
       data.dealStatus,
-    ]);
+    ];
 
-    const range = response.data.updates?.updatedRange || "";
-    const match = range.match(/(?:^|!)A(\d+)(?:[:!]|$)/i);
-
-    // Some Sheets API responses omit updatedRange. In that case, locate the
-    // newly appended enquiry by its unique ID instead of reporting a false failure.
-    let row = match ? Number(match[1]) : 0;
-    if (!row) {
-      const refreshedLeads = await readSheet("Leads!A1:A");
-      const savedIndex = refreshedLeads.findIndex((values, index) => index > 0 && values[0] === id);
-      if (savedIndex > 0) row = savedIndex + 1;
+    // Write to an explicit row rather than using values.append. The Leads tab
+    // has derived formulas in N:P, which can make append's detected table range
+    // unreliable when the data rows are partially populated.
+    let lastDataRow = 1;
+    for (let index = leads.length - 1; index >= 1; index--) {
+      if (String(leads[index]?.[0] || "").trim()) {
+        lastDataRow = index + 1;
+        break;
+      }
     }
+    const row = lastDataRow + 1;
+    await updateRow(`Leads!A${row}:M${row}`, [values]);
 
-    if (!row) {
-      throw new Error("Google Sheets did not return the saved enquiry row. Check the Leads tab and spreadsheet permissions before retrying.");
+    const savedRow = await readSheet(`Leads!A${row}:M${row}`);
+    if (String(savedRow[0]?.[0] || "").trim() !== id) {
+      throw new Error(
+        `Enquiry ${id} was not found in Leads row ${row} after writing. Confirm GOOGLE_SHEETS_ID points to the CRM_Database spreadsheet and that the service account has Editor access.`
+      );
     }
     await updateRow(`Leads!N${row}:P${row}`, [[
       `=IF(COUNTIF(Followups!B:B,A${row})=0,"",MAXIFS(Followups!C:C,Followups!B:B,A${row}))`,
       `=IF(B${row}="","",TODAY()-MAX(B${row},IF(N${row}="",B${row},N${row})))`,
       `=IF(O${row}="","",IF(O${row}<=30,"Hot",IF(O${row}<=60,"Warm","Cold")))`,
     ]]);
-
-    const savedRow = await readSheet(`Leads!A${row}:A${row}`);
-    if (savedRow[0]?.[0] !== id) {
-      throw new Error("The enquiry could not be verified in the configured Google Sheet. Check GOOGLE_SHEETS_ID and service-account access.");
-    }
 
     return NextResponse.json({
       success: true,
